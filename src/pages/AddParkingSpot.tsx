@@ -14,8 +14,12 @@ import {
   Umbrella,
   Wifi,
   Coffee,
-  Wrench
+  Wrench,
+  Upload,
+  QrCode,
+  Building2
 } from 'lucide-react';
+import { MapSelector } from '../components/MapSelector';
 
 export const AddParkingSpot: React.FC = () => {
   const navigate = useNavigate();
@@ -23,8 +27,8 @@ export const AddParkingSpot: React.FC = () => {
     name: '',
     description: '',
     address: '',
-    lat: 0,
-    lng: 0,
+    lat: 40.7589,
+    lng: -73.9851,
     totalSlots: 1,
     priceType: 'hour' as 'hour' | 'day' | 'month',
     price: 0,
@@ -49,6 +53,15 @@ export const AddParkingSpot: React.FC = () => {
     }
   });
 
+  const [paymentInfo, setPaymentInfo] = useState({
+    bankAccount: '',
+    bankName: '',
+    accountName: '',
+    qrCodeUrl: ''
+  });
+
+  const [uploadingQR, setUploadingQR] = useState(false);
+
   const availableAmenities = [
     { id: 'ev-charging', name: 'EV Charging', icon: Zap },
     { id: 'cctv', name: 'CCTV Security', icon: Shield },
@@ -63,6 +76,23 @@ export const AddParkingSpot: React.FC = () => {
     setFormData(prev => ({
       ...prev,
       [name]: type === 'number' ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  const handlePaymentInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPaymentInfo(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleLocationSelect = (lat: number, lng: number, address?: string) => {
+    setFormData(prev => ({
+      ...prev,
+      lat,
+      lng,
+      address: address || prev.address
     }));
   };
 
@@ -101,9 +131,27 @@ export const AddParkingSpot: React.FC = () => {
     }));
   };
 
+  const handleQRUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingQR(true);
+    try {
+      // Simulate upload
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const mockUrl = URL.createObjectURL(file);
+      setPaymentInfo(prev => ({ ...prev, qrCodeUrl: mockUrl }));
+    } catch (error) {
+      console.error('QR upload failed:', error);
+      alert('QR code upload failed. Please try again.');
+    } finally {
+      setUploadingQR(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating parking spot:', formData);
+    console.log('Creating parking spot:', { ...formData, paymentInfo });
     // In a real app, this would save to the database
     alert('Parking spot created successfully!');
     navigate('/admin');
@@ -201,7 +249,7 @@ export const AddParkingSpot: React.FC = () => {
                 <MapPin className="h-5 w-5 mr-2" />
                 Location
               </h3>
-              <div>
+              <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Full Address *
                 </label>
@@ -215,10 +263,12 @@ export const AddParkingSpot: React.FC = () => {
                   required
                 />
               </div>
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-700 mb-2">📍 Map Location Picker</p>
-                <p className="text-xs text-blue-600">In a real application, this would integrate with Google Maps API for precise location selection.</p>
-              </div>
+              <MapSelector
+                onLocationSelect={handleLocationSelect}
+                initialLat={formData.lat}
+                initialLng={formData.lng}
+                height="400px"
+              />
             </div>
 
             {/* Pricing & Capacity */}
@@ -274,6 +324,101 @@ export const AddParkingSpot: React.FC = () => {
                     required
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Payment Information */}
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Building2 className="h-5 w-5 mr-2" />
+                Payment Information
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bank Name
+                  </label>
+                  <input
+                    type="text"
+                    name="bankName"
+                    value={paymentInfo.bankName}
+                    onChange={handlePaymentInfoChange}
+                    placeholder="Bangkok Bank"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Account Number
+                  </label>
+                  <input
+                    type="text"
+                    name="bankAccount"
+                    value={paymentInfo.bankAccount}
+                    onChange={handlePaymentInfoChange}
+                    placeholder="1234-567-890"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Account Name
+                  </label>
+                  <input
+                    type="text"
+                    name="accountName"
+                    value={paymentInfo.accountName}
+                    onChange={handlePaymentInfoChange}
+                    placeholder="John Smith Parking Co."
+                    className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* QR Code Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Payment QR Code (Optional)
+                </label>
+                <div className="flex items-center space-x-4">
+                  <div className="flex-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleQRUpload}
+                      className="hidden"
+                      id="qr-upload"
+                    />
+                    <label
+                      htmlFor="qr-upload"
+                      className="flex items-center justify-center space-x-2 w-full px-4 py-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
+                      {uploadingQR ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          <span>Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4" />
+                          <span>Upload QR Code</span>
+                        </>
+                      )}
+                    </label>
+                  </div>
+                  {paymentInfo.qrCodeUrl && (
+                    <div className="w-20 h-20 border border-gray-200 rounded-lg overflow-hidden">
+                      <img
+                        src={paymentInfo.qrCodeUrl}
+                        alt="Payment QR Code"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Upload a QR code for customers to make payments directly to your account
+                </p>
               </div>
             </div>
 

@@ -7,6 +7,7 @@ import { BookingPage } from './pages/BookingPage';
 import { BookingsPage } from './pages/BookingsPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { BackendAdminDashboard } from './pages/BackendAdminDashboard';
 import { LoginPage } from './pages/LoginPage';
 import { AddParkingSpot } from './pages/AddParkingSpot';
 import { EditParkingSpot } from './pages/EditParkingSpot';
@@ -19,6 +20,9 @@ function App() {
         <Routes>
           {/* Auth Routes */}
           <Route path="/login" element={<LoginPage />} />
+          
+          {/* Backend Admin Route (no navbar) */}
+          <Route path="/backend-admin" element={<BackendAdminDashboard />} />
           
           {/* Protected Routes with Navbar */}
           <Route path="/*" element={

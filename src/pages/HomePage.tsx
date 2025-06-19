@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ParkingSpotCard } from '../components/ParkingSpotCard';
 import { SearchFilters } from '../components/SearchFilters';
+import { MapView } from '../components/MapView';
 import { mockParkingSpots } from '../data/mockData';
 import { Map, Grid } from 'lucide-react';
 
@@ -81,18 +82,21 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow-md p-8 text-center">
-            <Map className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Interactive Map View
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Map integration would be implemented here using Google Maps API
-            </p>
-            <div className="bg-gray-100 rounded-lg h-64 flex items-center justify-center">
-              <span className="text-gray-500">Google Maps Integration</span>
-            </div>
-          </div>
+          <MapView 
+            spots={spots.map(spot => ({
+              id: spot.id,
+              name: spot.name,
+              address: spot.address,
+              latitude: spot.lat,
+              longitude: spot.lng,
+              price: spot.price,
+              priceType: spot.priceType,
+              rating: spot.rating,
+              availableSlots: spot.availableSlots,
+              totalSlots: spot.totalSlots
+            }))}
+            height="600px"
+          />
         )}
       </div>
     </div>
